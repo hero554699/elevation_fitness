@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\WorkerController;
 use App\Http\Controllers\Admin\CoachController;
 use App\Http\Controllers\Admin\BranchController;
+use App\Http\Controllers\Admin\AttendanceController;
 
 // ── Public routes ──────────────────────────────────────────
 Route::get('/', [PublicController::class, 'index'])->name('home');
@@ -29,6 +30,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::resource('members', MemberController::class);
         Route::patch('/members/{member}/payment', [MemberController::class, 'markPaid'])->name('members.markPaid');
+
+        Route::resource('attendance', AttendanceController::class);
+        Route::get('/attendance/api/members-by-branch', [AttendanceController::class, 'getMembersByBranch'])->name('attendance.getMembersByBranch');
 
         Route::resource('workers', WorkerController::class);
         Route::resource('coaches', CoachController::class);
