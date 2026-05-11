@@ -137,6 +137,14 @@
                             <label class="block text-sm font-semibold text-gray-700 mb-2">
                                 Branch <span class="text-red-500">*</span>
                             </label>
+
+                            @if(Auth::user()->isBranchAdmin())
+                            <!-- Branch Admin: Show as disabled text input -->
+                            <input type="text" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-gray-100 cursor-not-allowed" disabled value="{{ Auth::user()->branch?->branch_name ?? 'N/A' }}">
+                            <input type="hidden" name="branch_id" value="{{ Auth::user()->branch_id }}">
+                            <p class="text-xs text-gray-500 mt-1">Your branch (auto-assigned)</p>
+                            @else
+                            <!-- Super Admin: Show dropdown -->
                             <select name="branch_id"
                                 class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100 transition"
                                 required>
@@ -148,6 +156,7 @@
                                 @endforeach
                             </select>
                             <p class="text-xs text-gray-500 mt-1">Primary workplace branch</p>
+                            @endif
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Date Hired</label>

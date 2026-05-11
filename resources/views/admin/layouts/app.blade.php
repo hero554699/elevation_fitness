@@ -395,6 +395,10 @@
                 <span class="icon">👥</span> Members
             </a>
 
+            <a href="{{ route('admin.attendance.index') }}" class="nav-item {{ request()->routeIs('admin.attendance.*') ? 'active':'' }}">
+                <span class="icon">📋</span> Attendance
+            </a>
+
             @if(Auth::user()->isBranchAdmin())
             <a href="{{ route('admin.workers.index') }}" class="nav-item {{ request()->routeIs('admin.workers.*') ? 'active':'' }}">
                 <span class="icon">🧑‍💼</span> Workers
@@ -427,7 +431,7 @@
         <div style="padding:16px 20px; border-top:1px solid rgba(255,255,255,0.08);">
             <form action="{{ route('admin.logout') }}" method="POST">
                 @csrf
-                <button type="submit" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.65);padding:10px;border-radius:8px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:8px;"
+                <button type="submit" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.65);padding:10px;border-radius:8px;font-family:'Inter',sans-serif;font-weight:600;font-size:14px;cursor:pointer;transition:all 0.15s;"
                     onmouseover="this.style.background='rgba(232,0,29,0.2)';this.style.color='#fff';"
                     onmouseout="this.style.background='rgba(255,255,255,0.06)';this.style.color='rgba(255,255,255,0.65)';">
                     🚪 Log Out

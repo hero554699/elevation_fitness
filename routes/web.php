@@ -31,11 +31,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('members', MemberController::class);
         Route::patch('/members/{member}/payment', [MemberController::class, 'markPaid'])->name('members.markPaid');
 
-        Route::resource('attendance', AttendanceController::class);
-        Route::get('/attendance/api/members-by-branch', [AttendanceController::class, 'getMembersByBranch'])->name('attendance.getMembersByBranch');
-
         Route::resource('workers', WorkerController::class);
         Route::resource('coaches', CoachController::class);
+
+        Route::resource('attendance', AttendanceController::class);
+        Route::get('/attendance/api/members-by-branch', [AttendanceController::class, 'getMembersByBranch'])->name('attendance.getMembersByBranch');
 
         Route::get('/branches',         [BranchController::class, 'index'])->name('branches.index');
         Route::get('/branches/{branch}', [BranchController::class, 'show'])->name('branches.show');
