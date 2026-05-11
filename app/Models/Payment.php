@@ -6,27 +6,20 @@ use Illuminate\Database\Eloquent\Model;
 
 class Payment extends Model
 {
-    
     protected $table = 'payments';
-
-    
-    protected $primaryKey = 'payment_id';
-
+    protected $primaryKey = 'id';
 
     protected $fillable = [
         'member_id',
-        'plan_id',
+        'branch_id',
         'amount',
         'payment_method',
-        'payment_type',
         'payment_date',
-        'receipt_no',
     ];
 
-
     protected $casts = [
-        'amount'       => 'decimal:2',
-        'payment_date' => 'date',
+        'amount' => 'decimal:2',
+        'payment_date' => 'datetime',
     ];
 
     public function member()
@@ -34,8 +27,8 @@ class Payment extends Model
         return $this->belongsTo(Member::class, 'member_id', 'member_id');
     }
 
-    public function plan()
+    public function branch()
     {
-        return $this->belongsTo(MembershipPlan::class, 'plan_id', 'plan_id');
+        return $this->belongsTo(Branch::class, 'branch_id', 'branch_id');
     }
 }
