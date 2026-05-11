@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Member;
 use App\Models\Branch;
 use App\Models\MembershipPlan;
+use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -54,7 +55,7 @@ class MemberController extends Controller
 
         $reference = 'EFG-' . strtoupper(substr(md5(uniqid()), 0, 8));
 
-        Member::create([
+        $member = Member::create([
             'first_name'     => $request->first_name,
             'last_name'      => $request->last_name,
             'email'          => $request->email,
@@ -66,6 +67,18 @@ class MemberController extends Controller
             'payment_status' => $request->payment_status,
             'reference_no'   => $reference,
         ]);
+
+        // If payment_status is paid during creation, create payment record
+        if ($request->payment_status === 'paid') {
+            $plan = MembershipPlan::find($request->plan_id);
+            Payment::create([
+                'member_id'    => $member->member_id,
+                'branch_id'    => $request->branch_id,
+                'amount'       => $plan->price,
+                'payment_method' => 'cash',
+                'payment_date' => now(),
+            ]);
+        }
 
         return redirect()->route('admin.members.index')
             ->with('success', 'Member added successfully.');
@@ -105,6 +118,10 @@ class MemberController extends Controller
             'status'         => 'required|in:pending,active,expired',
         ]);
 
+        // Check if payment status is changing from unpaid to paid
+        $wasUnpaid = $member->payment_status === 'unpaid';
+        $isPaid = $request->payment_status === 'paid';
+
         $member->update($request->only([
             'first_name',
             'last_name',
@@ -116,6 +133,18 @@ class MemberController extends Controller
             'payment_status',
             'status',
         ]));
+
+        // Create payment record if status changed to paid
+        if ($wasUnpaid && $isPaid) {
+            $plan = MembershipPlan::find($request->plan_id);
+            Payment::create([
+                'member_id'    => $member->member_id,
+                'branch_id'    => $request->branch_id,
+                'amount'       => $plan->price,
+                'payment_method' => 'cash',
+                'payment_date' => now(),
+            ]);
+        }
 
         return redirect()->route('admin.members.index')
             ->with('success', 'Member updated successfully.');
@@ -132,6 +161,23 @@ class MemberController extends Controller
     public function markPaid(Member $member)
     {
         $this->authorizeMember($member);
+
+        // Only create payment if not already marked as paid
+        if ($member->payment_status === 'unpaid') {
+            // Get the member's subscription plan price
+            $plan = $member->plan;
+
+            // Create payment record with plan price
+            Payment::create([
+                'member_id'      => $member->member_id,
+                'branch_id'      => $member->branch_id,
+                'amount'         => $plan->price,
+                'payment_method' => 'cash',
+                'payment_date'   => now(),
+            ]);
+        }
+
+        // Update member status
         $member->update([
             'payment_status'   => 'paid',
             'status'           => 'active',
@@ -139,7 +185,7 @@ class MemberController extends Controller
             'membership_end'   => now()->addDays($member->plan->duration_days),
         ]);
 
-        return back()->with('success', 'Payment confirmed. Member is now active.');
+        return back()->with('success', 'Payment confirmed. Member is now active and revenue updated!');
     }
 
     private function authorizeMember(Member $member)
