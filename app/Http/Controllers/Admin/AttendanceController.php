@@ -83,7 +83,12 @@ class AttendanceController extends Controller
         }
 
         // Create attendance record
-        Attendance::create($validated);
+        $attendance = Attendance::create($validated);
+
+        // Update member's last_checkin timestamp
+        $member->update([
+            'last_checkin' => now(),
+        ]);
 
         return redirect()->route('admin.attendance.index')
             ->with('success', 'Check-in recorded successfully!');
@@ -140,6 +145,11 @@ class AttendanceController extends Controller
         }
 
         $attendance->update($validated);
+
+        // Update member's last_checkin timestamp
+        $member->update([
+            'last_checkin' => now(),
+        ]);
 
         return redirect()->route('admin.attendance.index')
             ->with('success', 'Attendance record updated successfully!');

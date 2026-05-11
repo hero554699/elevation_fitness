@@ -28,7 +28,7 @@ class Member extends Model
     protected $casts = [
         'membership_start' => 'date',
         'membership_end'   => 'date',
-        'last_checkin'     => 'date',
+        'last_checkin'     => 'datetime',
     ];
 
     public function branch()

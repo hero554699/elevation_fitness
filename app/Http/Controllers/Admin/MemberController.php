@@ -55,7 +55,10 @@ class MemberController extends Controller
 
         $reference = 'EFG-' . strtoupper(substr(md5(uniqid()), 0, 8));
 
-        $member = Member::create([
+        // Get plan to calculate membership end date
+        $plan = MembershipPlan::find($request->plan_id);
+
+        $memberData = [
             'first_name'     => $request->first_name,
             'last_name'      => $request->last_name,
             'email'          => $request->email,
@@ -66,17 +69,25 @@ class MemberController extends Controller
             'status'         => $request->status,
             'payment_status' => $request->payment_status,
             'reference_no'   => $reference,
-        ]);
+        ];
+
+        // If creating as paid, set membership dates immediately
+        if ($request->payment_status === 'paid') {
+            $memberData['membership_start'] = now()->toDateString();
+            $memberData['membership_end'] = now()->addDays($plan->duration_days)->toDateString();
+            $memberData['status'] = 'active';
+        }
+
+        $member = Member::create($memberData);
 
         // If payment_status is paid during creation, create payment record
         if ($request->payment_status === 'paid') {
-            $plan = MembershipPlan::find($request->plan_id);
             Payment::create([
-                'member_id'    => $member->member_id,
-                'branch_id'    => $request->branch_id,
-                'amount'       => $plan->price,
+                'member_id'      => $member->member_id,
+                'branch_id'      => $request->branch_id,
+                'amount'         => $plan->price,
                 'payment_method' => 'cash',
-                'payment_date' => now(),
+                'payment_date'   => now(),
             ]);
         }
 
@@ -122,7 +133,7 @@ class MemberController extends Controller
         $wasUnpaid = $member->payment_status === 'unpaid';
         $isPaid = $request->payment_status === 'paid';
 
-        $member->update($request->only([
+        $updateData = $request->only([
             'first_name',
             'last_name',
             'email',
@@ -132,19 +143,25 @@ class MemberController extends Controller
             'plan_id',
             'payment_status',
             'status',
-        ]));
+        ]);
 
-        // Create payment record if status changed to paid
+        // Create payment record and set dates if status changed to paid
         if ($wasUnpaid && $isPaid) {
             $plan = MembershipPlan::find($request->plan_id);
+            $updateData['membership_start'] = now()->toDateString();
+            $updateData['membership_end'] = now()->addDays($plan->duration_days)->toDateString();
+            $updateData['status'] = 'active';
+
             Payment::create([
-                'member_id'    => $member->member_id,
-                'branch_id'    => $request->branch_id,
-                'amount'       => $plan->price,
+                'member_id'      => $member->member_id,
+                'branch_id'      => $request->branch_id,
+                'amount'         => $plan->price,
                 'payment_method' => 'cash',
-                'payment_date' => now(),
+                'payment_date'   => now(),
             ]);
         }
+
+        $member->update($updateData);
 
         return redirect()->route('admin.members.index')
             ->with('success', 'Member updated successfully.');
@@ -181,8 +198,8 @@ class MemberController extends Controller
         $member->update([
             'payment_status'   => 'paid',
             'status'           => 'active',
-            'membership_start' => now(),
-            'membership_end'   => now()->addDays($member->plan->duration_days),
+            'membership_start' => now()->toDateString(),
+            'membership_end'   => now()->addDays($member->plan->duration_days)->toDateString(),
         ]);
 
         return back()->with('success', 'Payment confirmed. Member is now active and revenue updated!');

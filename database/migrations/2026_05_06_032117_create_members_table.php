@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('reference_no')->unique();
             $table->date('membership_start')->nullable();
             $table->date('membership_end')->nullable();
-            $table->date('last_checkin')->nullable();
+            $table->dateTime('last_checkin')->nullable(); // CHANGED: date to dateTime
             $table->timestamps();
 
             // Foreign keys
